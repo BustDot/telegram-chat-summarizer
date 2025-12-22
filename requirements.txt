@@ -4,3 +4,4 @@ langchain-openai==0.2.14
 pydantic==2.10.4
 schedule==1.2.2
 pyTelegramBotAPI==4.26.0
+langchain-google-genai==2.0.8

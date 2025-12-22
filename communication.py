@@ -41,6 +41,12 @@ class GroupChatScrapper:
         datetime_from = self.get_datetime_from(lookback_period)
         # Warning: this probably won't work with the private group chats as those require joining beforehand
         # (public chats can be scrapped right away)
+        # specific chat_id
+        try:
+            chat_id = int(chat_id)
+        except ValueError:
+            pass
+            
         for message in self.client.iter_messages(chat_id):
             if message.date < datetime_from:
                 break
@@ -59,8 +65,8 @@ class GroupChatScrapper:
             if message.is_reply:
                 data["reply_to_message_id"] = message.reply_to.reply_to_msg_id
             history.append(data)
-        chat_title = self.client.get_entity(chat_id).title
-        return list(reversed(history)), chat_title
+        # chat_title = self.client.get_entity(chat_id).title
+        return list(reversed(history))
 
 
 class EnvoyBot:

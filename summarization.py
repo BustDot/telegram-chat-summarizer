@@ -9,10 +9,14 @@ from langchain.chains import LLMChain
 from langchain.memory import ConversationBufferMemory
 
 
+from langchain_google_genai import ChatGoogleGenerativeAI
+
 class Summarizer:
-    def __init__(self, openai_api_key):
-        self.openai_api_key = openai_api_key
+    def __init__(self, api_key, provider="openai"):
+        self.api_key = api_key
+        self.provider = provider
         self.openai_model = "gpt-4-turbo-preview"
+        self.google_model = "gemini-3-flash-preview"
 
         # Needed to store chat history
         self.persistent_prompt = ChatPromptTemplate.from_messages(
@@ -27,7 +31,11 @@ class Summarizer:
     def summarize(self, text_to_summarize, summarization_prompt):
         memory = ConversationBufferMemory(
             memory_key="chat_history", return_messages=True)
-        llm = ChatOpenAI(model_name=self.openai_model, openai_api_key=self.openai_api_key)
+        
+        if self.provider == "google":
+            llm = ChatGoogleGenerativeAI(model=self.google_model, google_api_key=self.api_key)
+        else:
+            llm = ChatOpenAI(model_name=self.openai_model, openai_api_key=self.api_key)
         chat_llm_chain = LLMChain(
             llm=llm,
             prompt=self.persistent_prompt,

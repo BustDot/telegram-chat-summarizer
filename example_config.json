@@ -1,7 +1,9 @@
 {
-    "telegram_api_id": <id>,
-    "telegram_api_hash": "<hash>",
-    "openai_api_key": "<key>",
+    "telegram_api_id": "<api id>",
+    "telegram_api_hash": "<api hash>",
+    "openai_api_key": "<key (optional if using google)>",
+    "google_api_key": "<key (optional if using openai)>",
+    "llm_provider": "openai or google",
     "telegram_bot_auth_token": "<token>",
     "chats_to_summarize": [
         {

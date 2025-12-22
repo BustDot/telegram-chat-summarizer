@@ -3,3 +3,4 @@ prompts/
 __pycache__/
 .idea/
 *.session
+.venv
