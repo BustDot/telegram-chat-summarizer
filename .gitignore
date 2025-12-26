@@ -1,6 +1,7 @@
 config.json
-prompts/
 __pycache__/
 .idea/
 *.session
 .venv
+.DS_Store
+*.session-journal

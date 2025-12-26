@@ -86,6 +86,60 @@ if __name__ == "__main__":
     )
 
 
+    def format_chat_id(chat_id: Union[str, int]) -> str:
+        s = str(chat_id)
+        if s.startswith("-100"):
+            return s[4:]
+        return s
+
+    def format_summary(summary_json_str: str, chat_id: Union[str, int]) -> str:
+        try:
+            # Clean up potential markdown code blocks
+            clean_json = summary_json_str.strip()
+            if clean_json.startswith("```json"):
+                clean_json = clean_json[7:]
+            elif clean_json.startswith("```"):
+                clean_json = clean_json[3:]
+            
+            if clean_json.endswith("```"):
+                clean_json = clean_json[:-3]
+            
+            clean_json = clean_json.strip()
+            
+            data = json.loads(clean_json)
+            
+            formatted_outputs = []
+            formatted_chat_id = format_chat_id(chat_id)
+            
+            for item in data:
+                topic = item.get("topic", "No Topic")
+                participants = ", ".join(item.get("participants", []))
+                
+                discussion_points = []
+                for d in item.get("discussion", []):
+                    point = d.get("point", "")
+                    key_ids = d.get("key_message_ids", [])
+                    
+                    links = []
+                    for i, msg_id in enumerate(key_ids):
+                        link = f'<a href="https://t.me/c/{formatted_chat_id}/{msg_id}">[{i+1}]</a>'
+                        links.append(link)
+                    
+                    links_str = " " + " ".join(links) if links else ""
+                    discussion_points.append(f" - {point}{links_str}")
+                
+                discussion_str = "\n".join(discussion_points)
+                
+                output = f"## {topic}\nParticipant: {participants}\nDiscussion:\n{discussion_str}"
+                formatted_outputs.append(output)
+            
+            return "\n\n".join(formatted_outputs)
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse summary JSON: {e}")
+            return f"Error parsing summary. Raw output:\n{summary_json_str}"
+
+
     def summarization_job(chat_cfg, summarization_prompt, summary_receivers):
         logger.info(f"Running summarization job for: {chat_cfg.id}")
         with llm_contexts_lock:
@@ -101,15 +155,18 @@ if __name__ == "__main__":
             # Summarize messages
             summary, context = summarizer.summarize(serialized_messages, summarization_prompt)
 
+            # Format the summary
+            formatted_summary = format_summary(summary, chat_cfg.id)
+
             # Send the summary and update LLM context
             for u in summary_receivers:
                 llm_contexts[chat_cfg.id][u] = context
                 logger.info(f"Sending summary for {chat_cfg.id} to {u}")
-                logger.debug(f"Summary for {chat_cfg.id}: {summary}")
+                logger.debug(f"Summary for {chat_cfg.id}: {formatted_summary}")
                 chat_lookback_period_hours = int(chat_cfg.lookback_period_seconds / 60 / 60)
                 envoy_bot.send_summary(
                     u,
-                    f"Summary for <b>{chat_cfg.id}</b> for the last {chat_lookback_period_hours} hours:\n\n{summary}",
+                    f"Summary for <b>{chat_cfg.id}</b> for the last {chat_lookback_period_hours} hours:\n\n{formatted_summary}",
                     chat_cfg.id
                 )
 

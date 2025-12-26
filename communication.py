@@ -51,7 +51,7 @@ class GroupChatScrapper:
             if message.date < datetime_from:
                 break
             if not message.text:
-                logging.warning(f"Non-text message skipped, summarization result might be affected")
+                # logging.warning(f"Non-text message skipped, summarization result might be affected")
                 continue
             sender = message.get_sender()
             data = {
